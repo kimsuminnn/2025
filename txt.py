@@ -1,4 +1,4 @@
-# app.py
+# txt.pt
 # -*- coding: utf-8 -*-
 import re
 import pandas as pd
@@ -8,9 +8,7 @@ from difflib import get_close_matches
 
 st.set_page_config(page_title="식단 및 영양 분석", page_icon="🥗", layout="wide")
 
-# -----------------------------
-# 1) 음식 데이터베이스 (샘플)
-# -----------------------------
+# 음식 데이터베이스
 FOOD_DB = {
     "밥": {"kcal": 300, "carb": 66, "protein": 6, "fat": 0.6},
     "김치": {"kcal": 10, "carb": 2, "protein": 1, "fat": 0.2},
@@ -23,9 +21,7 @@ FOOD_DB = {
     "오므라이스": {"kcal": 520, "carb": 68, "protein": 18, "fat": 14},
 }
 
-# -----------------------------
-# 2) 카테고리별 추정치
-# -----------------------------
+# 카테고리별 추정치
 CATEGORY_DEFAULTS = {
     "밥": {"kcal": 300, "carb": 65, "protein": 6, "fat": 1},
     "면": {"kcal": 400, "carb": 75, "protein": 12, "fat": 8},
@@ -44,25 +40,18 @@ CATEGORY_KEYWORDS = {
 }
 
 def estimate_food(food_name: str):
-    # 정확히 포함된 음식명
     for key in FOOD_DB:
         if key in food_name:
             return FOOD_DB[key]
-    # 유사한 음식명
     match = get_close_matches(food_name, FOOD_DB.keys(), n=1, cutoff=0.6)
     if match:
         return FOOD_DB[match[0]]
-    # 카테고리 키워드
     for cat, keywords in CATEGORY_KEYWORDS.items():
         for kw in keywords:
             if kw in food_name:
                 return CATEGORY_DEFAULTS[cat]
-    # 기타
     return CATEGORY_DEFAULTS["기타"]
 
-# -----------------------------
-# 3) 권장 섭취량 계산
-# -----------------------------
 def calc_recommendations(sex, age, weight, height, activity):
     if sex == "남":
         bmr = 10 * weight + 6.25 * height - 5 * age + 5
@@ -75,9 +64,6 @@ def calc_recommendations(sex, age, weight, height, activity):
     fat = int((0.25 * tdee) / 9)
     return {"kcal": tdee, "carb": carb, "protein": protein, "fat": fat}
 
-# -----------------------------
-# 4) 식습관 개선 팁
-# -----------------------------
 def generate_tips(total, rec):
     tips = []
     if total["kcal"] < rec["kcal"] * 0.9:
@@ -100,9 +86,7 @@ def generate_tips(total, rec):
         tips.append("아주 균형 잡힌 식단이에요! 👏 계속 유지해 보세요.")
     return tips
 
-# -----------------------------
-# 5) Streamlit UI
-# -----------------------------
+# Streamlit UI
 st.title("🥗 식단 및 영양 분석")
 
 st.subheader("👤 내 정보 입력")
@@ -136,4 +120,10 @@ if st.button("분석하기"):
             continue
         qty = int(re.search(r"\d+", f).group()) if re.search(r"\d+", f) else 1
         nutri = estimate_food(f)
-        st.write(f"- {f
+        st.write(f"- {f} → {nutri['kcal']} kcal, 탄수 {nutri['carb']}g, 단백질 {nutri['protein']}g, 지방 {nutri['fat']}g × {qty}")
+        for k in total:
+            total[k] += nutri[k] * qty
+
+    st.subheader("📊 하루 총 섭취량 vs 권장량")
+    st.write(f"**총 칼로리:** {total['kcal']} kcal / 권장 {rec['kcal']} kcal")
+    st.write(f"**탄수화물:** {total['carb']} g / 권장 {
