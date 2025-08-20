@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
+from difflib import get_close_matches
 
-st.title("🍽️ 자동 칼로리 및 영양소 분석기")
-st.write("음식 이름만 입력하면 칼로리와 영양소를 자동으로 계산해드려요!")
+st.title("🍱 자유 입력 식단 분석기")
+st.write("아무 음식이나 입력하면 자동으로 칼로리와 영양소를 추정해드려요!")
 
 # ✅ 음식-영양소 데이터셋 (예시)
 food_db = {
@@ -13,10 +14,11 @@ food_db = {
     "계란": {"칼로리": 70, "탄수화물": 0.6, "단백질": 6, "지방": 5},
     "사과": {"칼로리": 52, "탄수화물": 14, "단백질": 0.3, "지방": 0.2},
     "우유": {"칼로리": 100, "탄수화물": 12, "단백질": 8, "지방": 4.5},
-    "고구마": {"칼로리": 130, "탄수화물": 30, "단백질": 2, "지방": 0.1}
+    "고구마": {"칼로리": 130, "탄수화물": 30, "단백질": 2, "지방": 0.1},
+    "햄버거": {"칼로리": 500, "탄수화물": 40, "단백질": 25, "지방": 30},
+    "피자": {"칼로리": 285, "탄수화물": 36, "단백질": 12, "지방": 10}
 }
 
-# ✅ 권장 섭취량 (성인 기준)
 recommended = {
     "칼로리": 2000,
     "탄수화물": 300,
@@ -26,7 +28,7 @@ recommended = {
 
 # ✅ 사용자 입력
 st.subheader("📝 오늘 먹은 음식 입력")
-food_input = st.text_area("쉼표로 구분해서 입력해주세요 (예: 밥, 김치, 닭가슴살)", height=100)
+food_input = st.text_area("쉼표로 구분해서 자유롭게 입력하세요 (예: 밥, 치킨, 바나나)", height=100)
 
 if st.button("분석 시작"):
     food_list = [f.strip() for f in food_input.split(",")]
@@ -34,17 +36,19 @@ if st.button("분석 시작"):
     matched_foods = []
 
     for food in food_list:
-        if food in food_db:
-            info = food_db[food]
+        match = get_close_matches(food, food_db.keys(), n=1, cutoff=0.6)
+        if match:
+            matched = match[0]
+            info = food_db[matched]
             for key in total:
                 total[key] += info[key]
-            matched_foods.append({**{"음식": food}, **info})
+            matched_foods.append({**{"입력": food, "매칭된 음식": matched}, **info})
         else:
-            st.warning(f"❗ '{food}'은 데이터베이스에 없어요. 다른 이름으로 입력해보세요.")
+            st.warning(f"❗ '{food}'은 유사한 항목을 찾을 수 없어요.")
 
     # ✅ 결과 출력
     if matched_foods:
-        st.subheader("📊 섭취한 음식과 영양 정보")
+        st.subheader("📊 매칭된 음식과 영양 정보")
         df = pd.DataFrame(matched_foods)
         st.dataframe(df)
 
