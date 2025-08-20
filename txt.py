@@ -1,72 +1,29 @@
-import streamlit as st
-import pandas as pd
 from difflib import get_close_matches
 
-st.title("🍱 자유 입력 식단 분석기")
-st.write("아무 음식이나 입력하면 자동으로 칼로리와 영양소를 추정해드려요!")
+def estimate_food(food_name: str):
+    # 1) 정확히 포함된 음식명 찾기
+    for key in FOOD_DB:
+        if key in food_name:
+            return FOOD_DB[key]
 
-# ✅ 음식-영양소 데이터셋 (예시)
-food_db = {
-    "밥": {"칼로리": 300, "탄수화물": 65, "단백질": 6, "지방": 0.5},
-    "김치": {"칼로리": 30, "탄수화물": 7, "단백질": 2, "지방": 0.2},
-    "닭가슴살": {"칼로리": 165, "탄수화물": 0, "단백질": 31, "지방": 3.6},
-    "바나나": {"칼로리": 90, "탄수화물": 23, "단백질": 1, "지방": 0.3},
-    "계란": {"칼로리": 70, "탄수화물": 0.6, "단백질": 6, "지방": 5},
-    "사과": {"칼로리": 52, "탄수화물": 14, "단백질": 0.3, "지방": 0.2},
-    "우유": {"칼로리": 100, "탄수화물": 12, "단백질": 8, "지방": 4.5},
-    "고구마": {"칼로리": 130, "탄수화물": 30, "단백질": 2, "지방": 0.1},
-    "햄버거": {"칼로리": 500, "탄수화물": 40, "단백질": 25, "지방": 30},
-    "피자": {"칼로리": 285, "탄수화물": 36, "단백질": 12, "지방": 10}
-}
+    # 2) 유사한 음식명 찾기
+    match = get_close_matches(food_name, FOOD_DB.keys(), n=1, cutoff=0.6)
+    if match:
+        return FOOD_DB[match[0]]
 
-recommended = {
-    "칼로리": 2000,
-    "탄수화물": 300,
-    "단백질": 50,
-    "지방": 70
-}
+    # 3) 카테고리 키워드 기반 추정
+    category_keywords = {
+        "밥": ["밥", "덮밥", "비빔밥", "볶음밥", "오므라이스", "카레"],
+        "면": ["면", "라면", "파스타", "우동", "국수"],
+        "빵": ["빵", "토스트", "샌드위치", "버거"],
+        "고기": ["고기", "소고기", "돼지고기", "치킨", "스테이크"],
+        "디저트": ["케이크", "쿠키", "아이스크림", "디저트", "초콜릿"],
+    }
 
-# ✅ 사용자 입력
-st.subheader("📝 오늘 먹은 음식 입력")
-food_input = st.text_area("쉼표로 구분해서 자유롭게 입력하세요 (예: 밥, 치킨, 바나나)", height=100)
+    for cat, keywords in category_keywords.items():
+        for kw in keywords:
+            if kw in food_name:
+                return CATEGORY_DEFAULTS[cat]
 
-if st.button("분석 시작"):
-    food_list = [f.strip() for f in food_input.split(",")]
-    total = {"칼로리": 0, "탄수화물": 0, "단백질": 0, "지방": 0}
-    matched_foods = []
-
-    for food in food_list:
-        match = get_close_matches(food, food_db.keys(), n=1, cutoff=0.6)
-        if match:
-            matched = match[0]
-            info = food_db[matched]
-            for key in total:
-                total[key] += info[key]
-            matched_foods.append({**{"입력": food, "매칭된 음식": matched}, **info})
-        else:
-            st.warning(f"❗ '{food}'은 유사한 항목을 찾을 수 없어요.")
-
-    # ✅ 결과 출력
-    if matched_foods:
-        st.subheader("📊 매칭된 음식과 영양 정보")
-        df = pd.DataFrame(matched_foods)
-        st.dataframe(df)
-
-        st.subheader("📈 총 섭취량 vs 권장량")
-        compare_df = pd.DataFrame({
-            "섭취량": [total[k] for k in recommended],
-            "권장량": [recommended[k] for k in recommended]
-        }, index=recommended.keys())
-        st.bar_chart(compare_df)
-
-        st.subheader("💡 식습관 개선 팁")
-        for key in recommended:
-            intake = total[key]
-            need = recommended[key]
-            if intake < need * 0.8:
-                st.write(f"🔻 {key} 섭취가 부족해요. {key}이 풍부한 식품을 더 드셔보세요.")
-            elif intake > need * 1.2:
-                st.write(f"🔺 {key} 섭취가 많아요. 과다 섭취를 주의하세요.")
-            else:
-                st.write(f"✅ {key} 섭취가 적절해요. 잘하고 있어요!")
-
+    # 4) 못 찾으면 기타
+    return CATEGORY_DEFAULTS["기타"]
