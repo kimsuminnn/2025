@@ -1,4 +1,5 @@
 # app.py
+# -*- coding: utf-8 -*-
 import re
 import numpy as np
 import pandas as pd
@@ -8,7 +9,7 @@ import altair as alt
 st.set_page_config(page_title="식단 및 영양 분석", page_icon="🥗", layout="wide")
 
 # -----------------------------
-# 1) 음식 데이터베이스 (일부 샘플)
+# 1) 음식 데이터베이스 (샘플)
 # -----------------------------
 FOOD_DB = {
     "밥": {"kcal": 300, "carb": 66, "protein": 6, "fat": 0.6},
@@ -48,7 +49,8 @@ def estimate_food(food_name: str):
 # -----------------------------
 st.title("🥗 식단 및 영양 분석")
 
-st.write("하루 동안 먹은 음식을 자유롭게 입력하세요 (예: 아침: 밥, 달걀 2개 / 점심: 라면 1개 / 저녁: 치킨 2조각)")
+st.write("하루 동안 먹은 음식을 자유롭게 입력하세요")
+st.write("예시: 아침: 밥, 달걀 2개 / 점심: 라면 1개 / 저녁: 치킨 2조각")
 
 user_input = st.text_area("식단 입력", height=150)
 
@@ -70,8 +72,18 @@ if st.button("분석하기"):
     st.write(f"총 칼로리: **{total['kcal']} kcal**")
     st.write(f"탄수화물: **{total['carb']} g**, 단백질: **{total['protein']} g**, 지방: **{total['fat']} g**")
 
+    # Altair 바 차트 (라벨 가로 표시)
     chart = pd.DataFrame({
         "영양소": ["탄수화물", "단백질", "지방"],
         "g": [total["carb"], total["protein"], total["fat"]]
     })
-    st.bar_chart(chart.set_index("영양소"))
+
+    bar = (
+        alt.Chart(chart)
+        .mark_bar(color="#4caf50")
+        .encode(
+            x=alt.X("영양소:N", axis=alt.Axis(labelAngle=0)),  # 라벨 가로
+            y="g:Q"
+        )
+    )
+    st.altair_chart(bar, use_container_width=True)
