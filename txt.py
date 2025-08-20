@@ -9,7 +9,7 @@ import pandas as pd
 import streamlit as st
 import altair as alt
 
-st.set_page_config(page_title="고2 식단 · 영양 분석기", page_icon="🥗", layout="wide")
+st.set_page_config(page_title="식단 · 영양 분석", page_icon="🥗", layout="wide")
 
 # -----------------------------
 # 1) 음식 데이터베이스 (15개 열 맞춤)
