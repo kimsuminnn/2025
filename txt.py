@@ -31,12 +31,15 @@ CATEGORY_DEFAULTS = {
     "기타": {"kcal": 200, "carb": 30, "protein": 5, "fat": 5},
 }
 
+# -----------------------------
+# 3) 음식 영양소 추정 함수
+# -----------------------------
 def estimate_food(food_name: str):
     food_name = food_name.strip().lower()
 
-    # 0칼로리 처리할 경우
-    skip_words = ["없음", "안 먹", "먹지 않음", "굶음", "x", ""]
-    if any(word in food_name for word in skip_words):
+    # 0칼로리 처리: 빈칸 or 특정 키워드
+    skip_words = ["없음", "안 먹", "먹지 않음", "굶음", "x"]
+    if food_name == "" or any(word in food_name for word in skip_words):
         return {"kcal": 0, "carb": 0, "protein": 0, "fat": 0}
 
     # 1) DB에서 찾기
@@ -51,7 +54,7 @@ def estimate_food(food_name: str):
     return CATEGORY_DEFAULTS["기타"]
 
 # -----------------------------
-# 3) 권장 칼로리 및 영양소 계산
+# 4) 권장 칼로리 및 영양소 계산
 # -----------------------------
 def calc_recommendations(sex, age, weight, height, activity):
     if sex == "남":
@@ -69,7 +72,7 @@ def calc_recommendations(sex, age, weight, height, activity):
     return {"kcal": tdee, "carb": carb, "protein": protein, "fat": fat}
 
 # -----------------------------
-# 4) 맞춤형 팁 생성
+# 5) 맞춤형 팁 생성
 # -----------------------------
 def generate_tips(total, rec):
     tips = []
@@ -98,7 +101,7 @@ def generate_tips(total, rec):
     return tips
 
 # -----------------------------
-# 5) Streamlit UI
+# 6) Streamlit UI
 # -----------------------------
 st.title("🥗 식단 및 영양 분석")
 
@@ -120,7 +123,7 @@ with col5:
 st.write("---")
 
 st.subheader("🍽️ 식단 입력")
-st.write("예시: 아침: 밥, 달걀 2개 / 점심: 라면 1개 / 저녁: 치킨 2조각")
+st.write("예시: 아침: 밥, 달걀 2개 / 점심: 라면 1개 / 저녁: 치킨 2조각\n👉 '없음', 'x', 빈칸 = 0칼로리 처리")
 user_input = st.text_area("하루 동안 먹은 음식", height=150)
 
 if st.button("분석하기"):
@@ -155,7 +158,7 @@ if st.button("분석하기"):
         alt.Chart(chart.melt("영양소", var_name="구분", value_name="g"))
         .mark_bar()
         .encode(
-            x=alt.X("영양소:N", axis=alt.Axis(labelAngle=0)),
+            x=alt.X("영양소:N", axis=alt.Axis(labelAngle=0)),  # 가로 라벨
             y="g:Q",
             color="구분:N"
         )
