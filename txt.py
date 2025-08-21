@@ -141,7 +141,7 @@ with col5:
 st.write("---")
 
 st.subheader("🍽️ 식단 입력")
-st.write("예시: 아침: 밥 2공기, 달걀 2개 / 점심: 라면 1봉지 / 저녁: 치킨 3조각\n👉 '없음', 'x', '저녁:'만 적어도 = 0칼로리 처리")
+st.write("예시: 아침: 밥 2공기, 달걀 2개 / 점심: 라면 1봉지 / 저녁: 치킨 3조각")
 user_input = st.text_area("하루 동안 먹은 음식", height=150)
 
 if st.button("분석하기"):
