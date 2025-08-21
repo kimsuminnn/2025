@@ -11,12 +11,12 @@ st.set_page_config(page_title="식단 및 영양 분석", page_icon="🥗", layo
 # 1) 음식 데이터베이스 (샘플)
 # -----------------------------
 FOOD_DB = {
-    "밥": {"kcal": 300, "carb": 66, "protein": 6, "fat": 0.6},
-    "김치": {"kcal": 10, "carb": 2, "protein": 1, "fat": 0.2},
-    "달걀": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},
-    "닭가슴살": {"kcal": 165, "carb": 0, "protein": 31, "fat": 3.6},
-    "라면": {"kcal": 500, "carb": 77, "protein": 10, "fat": 17},
-    "치킨": {"kcal": 430, "carb": 23, "protein": 31, "fat": 24},
+    "밥": {"kcal": 300, "carb": 66, "protein": 6, "fat": 0.6},   # 1공기
+    "김치": {"kcal": 10, "carb": 2, "protein": 1, "fat": 0.2},    # 1접시
+    "달걀": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},      # 1개
+    "닭가슴살": {"kcal": 165, "carb": 0, "protein": 31, "fat": 3.6},  # 100g
+    "라면": {"kcal": 500, "carb": 77, "protein": 10, "fat": 17},  # 1봉지
+    "치킨": {"kcal": 215, "carb": 12, "protein": 15, "fat": 12},  # 1조각
 }
 
 # -----------------------------
@@ -32,7 +32,7 @@ CATEGORY_DEFAULTS = {
 }
 
 # -----------------------------
-# 3) 음식 영양소 추정 함수
+# 3) 음식 영양소 추정 함수 (+ 수량 인식)
 # -----------------------------
 def estimate_food(food_name: str):
     food_name = food_name.strip().lower()
@@ -48,16 +48,28 @@ def estimate_food(food_name: str):
     if food_name == "" or any(word in food_name for word in skip_words):
         return {"kcal": 0, "carb": 0, "protein": 0, "fat": 0}
 
+    # 👉 수량 인식 (숫자 + 단위)
+    qty = 1
+    match = re.search(r"(\d+)\s*(개|공기|조각|봉지|접시|g|그램)?", food_name)
+    if match:
+        qty = int(match.group(1))
+        food_name = food_name.replace(match.group(0), "").strip()
+
     # 1) DB에서 찾기
     for key in FOOD_DB:
         if key in food_name:
-            return FOOD_DB[key]
+            base = FOOD_DB[key]
+            return {k: v * qty for k, v in base.items()}
+
     # 2) 카테고리 추정
     for cat in CATEGORY_DEFAULTS:
         if cat in food_name:
-            return CATEGORY_DEFAULTS[cat]
+            base = CATEGORY_DEFAULTS[cat]
+            return {k: v * qty for k, v in base.items()}
+
     # 3) 못 찾으면 기타
-    return CATEGORY_DEFAULTS["기타"]
+    base = CATEGORY_DEFAULTS["기타"]
+    return {k: v * qty for k, v in base.items()}
 
 # -----------------------------
 # 4) 권장 칼로리 및 영양소 계산
@@ -129,7 +141,7 @@ with col5:
 st.write("---")
 
 st.subheader("🍽️ 식단 입력")
-st.write("예시: 아침: 밥, 달걀 2개 / 점심: 라면 1개 / 저녁: 치킨 2조각")
+st.write("예시: 아침: 밥 2공기, 달걀 2개 / 점심: 라면 1봉지 / 저녁: 치킨 3조각\n👉 '없음', 'x', '저녁:'만 적어도 = 0칼로리 처리")
 user_input = st.text_area("하루 동안 먹은 음식", height=150)
 
 if st.button("분석하기"):
@@ -141,7 +153,7 @@ if st.button("분석하기"):
     st.subheader("🍱 입력된 음식 분석")
     for f in foods:
         f = f.strip()
-        nutri = estimate_food(f)   # 🔥 빈칸, 없음, x, 저녁: → 0 처리
+        nutri = estimate_food(f)   # 🔥 수량 인식 반영
         st.write(f"- {f if f else '빈칸'}: {nutri['kcal']} kcal, "
                  f"탄수 {nutri['carb']}g, 단백질 {nutri['protein']}g, 지방 {nutri['fat']}g")
         for k in total:
