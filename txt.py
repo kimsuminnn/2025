@@ -13,7 +13,9 @@ st.set_page_config(page_title="식단 및 영양 분석", page_icon="🥗", layo
 FOOD_DB = {
     "밥": {"kcal": 300, "carb": 66, "protein": 6, "fat": 0.6},   # 1공기
     "김치": {"kcal": 10, "carb": 2, "protein": 1, "fat": 0.2},    # 1접시
-    "달걀, 계란, 계란후라이": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},      # 1개
+    "달걀": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},       # 1개
+    "계란": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},       # 1개
+    "계란후라이": {"kcal": 90, "carb": 1, "protein": 6, "fat": 7}, # 1개
     "닭가슴살": {"kcal": 165, "carb": 0, "protein": 31, "fat": 3.6},  # 100g
     "라면": {"kcal": 500, "carb": 77, "protein": 10, "fat": 17},  # 1봉지
     "치킨": {"kcal": 215, "carb": 12, "protein": 15, "fat": 12},  # 1조각
