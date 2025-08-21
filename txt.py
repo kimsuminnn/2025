@@ -135,10 +135,9 @@ if st.button("분석하기"):
     st.subheader("🍱 입력된 음식 분석")
     for f in foods:
         f = f.strip()
-        if not f:
-            continue
-        nutri = estimate_food(f)
-        st.write(f"- {f if f else '빈칸'}: {nutri['kcal']} kcal, 탄수 {nutri['carb']}g, 단백질 {nutri['protein']}g, 지방 {nutri['fat']}g")
+        nutri = estimate_food(f)   # 🔥 빈칸도 여기서 0 처리됨
+        st.write(f"- {f if f else '빈칸'}: {nutri['kcal']} kcal, "
+                 f"탄수 {nutri['carb']}g, 단백질 {nutri['protein']}g, 지방 {nutri['fat']}g")
         for k in total:
             total[k] += nutri[k]
     
@@ -158,7 +157,7 @@ if st.button("분석하기"):
         alt.Chart(chart.melt("영양소", var_name="구분", value_name="g"))
         .mark_bar()
         .encode(
-            x=alt.X("영양소:N", axis=alt.Axis(labelAngle=0)),  # 가로 라벨
+            x=alt.X("영양소:N", axis=alt.Axis(labelAngle=0)),  # ✅ 가로 라벨
             y="g:Q",
             color="구분:N"
         )
