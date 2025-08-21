@@ -37,6 +37,12 @@ CATEGORY_DEFAULTS = {
 def estimate_food(food_name: str):
     food_name = food_name.strip().lower()
 
+    # 식사 시간 키워드 제거
+    meal_words = ["아침:", "점심:", "저녁:", "간식:"]
+    for mw in meal_words:
+        if food_name.startswith(mw):
+            food_name = food_name.replace(mw, "").strip()
+
     # 0칼로리 처리: 빈칸 or 특정 키워드
     skip_words = ["없음", "안 먹", "먹지 않음", "굶음", "x"]
     if food_name == "" or any(word in food_name for word in skip_words):
@@ -123,7 +129,7 @@ with col5:
 st.write("---")
 
 st.subheader("🍽️ 식단 입력")
-st.write("예시: 아침: 밥, 달걀 2개 / 점심: 라면 1개 / 저녁: 치킨 2조각\n👉 '없음', 'x', 빈칸 = 0칼로리 처리")
+st.write("예시: 아침: 밥, 달걀 2개 / 점심: 라면 1개 / 저녁: 치킨 2조각\n👉 '없음', 'x', '저녁:'만 적어도 = 0칼로리 처리")
 user_input = st.text_area("하루 동안 먹은 음식", height=150)
 
 if st.button("분석하기"):
@@ -135,7 +141,7 @@ if st.button("분석하기"):
     st.subheader("🍱 입력된 음식 분석")
     for f in foods:
         f = f.strip()
-        nutri = estimate_food(f)   # 🔥 빈칸도 여기서 0 처리됨
+        nutri = estimate_food(f)   # 🔥 빈칸, 없음, x, 저녁: → 0 처리
         st.write(f"- {f if f else '빈칸'}: {nutri['kcal']} kcal, "
                  f"탄수 {nutri['carb']}g, 단백질 {nutri['protein']}g, 지방 {nutri['fat']}g")
         for k in total:
