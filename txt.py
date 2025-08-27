@@ -196,3 +196,8 @@ if st.button("분석하기"):
     tips = generate_tips(total, rec)
     for t in tips:
         st.write("- " + t)
+
+# 초기화 버튼
+if st.button("🔄 초기화"):
+    st.session_state.clear()
+    st.experimental_rerun()
