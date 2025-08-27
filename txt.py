@@ -197,7 +197,7 @@ if st.button("분석하기"):
     for t in tips:
         st.write("- " + t)
 
-# 초기화 버튼
-if st.button("🔄 초기화"):
-    st.session_state.clear()
+# 🔄 초기화 버튼 (내 정보 초기화)
+if st.button("🔄 내 식단 초기화"):
+    st.session_state["foods_input"] = ""  # 입력값 비우기
     st.experimental_rerun()
