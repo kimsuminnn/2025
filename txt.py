@@ -80,25 +80,21 @@ def calc_recommendations(sex, age, weight, height, activity):
 # -----------------------------
 def generate_tips(total, rec):
     tips = []
-    # 칼로리
     if total["kcal"] < rec["kcal"] * 0.9:
         tips.append("칼로리가 부족해요. 밥, 감자, 고구마 같은 탄수화물 음식을 조금 더 드세요.")
     elif total["kcal"] > rec["kcal"] * 1.1:
         tips.append("칼로리가 과해요. 간식이나 튀긴 음식 섭취를 줄이는 게 좋아요.")
 
-    # 단백질
     if total["protein"] < rec["protein"] * 0.9:
         tips.append("단백질이 부족해요. 달걀, 두부, 닭가슴살 같은 단백질 식품을 더 드세요.")
     elif total["protein"] > rec["protein"] * 1.2:
         tips.append("단백질이 과해요. 과한 단백질은 신장에 부담을 줄 수 있어요.")
 
-    # 탄수화물
     if total["carb"] < rec["carb"] * 0.9:
         tips.append("탄수화물이 부족해요. 밥, 빵, 과일을 추가해 보세요.")
     elif total["carb"] > rec["carb"] * 1.2:
         tips.append("탄수화물이 많아요. 단 음료나 과자를 줄이는 게 좋아요.")
 
-    # 지방
     if total["fat"] < rec["fat"] * 0.8:
         tips.append("지방이 부족해요. 견과류나 올리브유 같은 건강한 지방을 섭취해 보세요.")
     elif total["fat"] > rec["fat"] * 1.2:
@@ -118,7 +114,7 @@ col1, col2, col3 = st.columns(3)
 with col1:
     sex = st.radio("성별", ["남", "여"])
 with col2:
-    age = st.number_input("나이", 5, 100, 20)  # 더 넓은 연령대
+    age = st.number_input("나이", 5, 100, 20)
 with col3:
     activity = st.selectbox("활동량", ["낮음", "보통", "높음"])
 
@@ -129,13 +125,11 @@ with col5:
     weight = st.number_input("몸무게(kg)", 20, 200, 60)
 
 st.write("---")
-
 st.subheader("🍽️ 식단 입력")
 st.write("예시: 아침: 밥, 달걀 2개 / 점심: 라면 1개 / 저녁: 치킨 2조각")
 user_input = st.text_area("하루 동안 먹은 음식", height=150)
 
 if st.button("분석하기"):
-    # 권장량 계산
     rec = calc_recommendations(sex, age, weight, height, activity)
 
     foods = re.split(r"[,\n/]", user_input)
@@ -144,7 +138,7 @@ if st.button("분석하기"):
     st.subheader("🍱 입력된 음식 분석")
     for f in foods:
         f = f.strip()
-        if not f: 
+        if not f:
             continue
         nutri = estimate_food(f)
         st.write(f"- {f}: {nutri['kcal']} kcal, 탄수 {nutri['carb']}g, 단백질 {nutri['protein']}g, 지방 {nutri['fat']}g")
@@ -157,7 +151,7 @@ if st.button("분석하기"):
     st.write(f"**단백질:** {total['protein']} g / 권장 {rec['protein']} g")
     st.write(f"**지방:** {total['fat']} g / 권장 {rec['fat']} g")
 
-    # 나란히 막대 그래프
+    # 그룹드 바 차트 (나란히)
     chart = pd.DataFrame({
         "영양소": ["탄수화물", "단백질", "지방"],
         "섭취량": [total["carb"], total["protein"], total["fat"]],
@@ -168,17 +162,28 @@ if st.button("분석하기"):
 
     bar = (
         alt.Chart(chart_melt)
-        .mark_bar(size=30)
+        .mark_bar()
         .encode(
-            x=alt.X("영양소:N", axis=alt.Axis(labelAngle=0)),
+            x=alt.X("영양소:N", title="영양소"),
             y=alt.Y("g:Q", title="g (그램)"),
             color=alt.Color("구분:N", scale=alt.Scale(scheme="set2")),
-            column="영양소:N"
+            column=None
         )
-        .properties(width=120, height=400)
+        .properties(width=500, height=400)
     )
 
-    st.altair_chart(bar, use_container_width=True)
+    text = (
+        alt.Chart(chart_melt)
+        .mark_text(dy=-10)
+        .encode(
+            x=alt.X("영양소:N"),
+            y="g:Q",
+            text="g:Q",
+            color="구분:N"
+        )
+    )
+
+    st.altair_chart(bar + text, use_container_width=True)
 
     st.subheader("💡 맞춤형 식습관 개선 팁")
     tips = generate_tips(total, rec)
