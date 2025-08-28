@@ -157,7 +157,7 @@ if st.button("분석하기"):
     st.write(f"**단백질:** {total['protein']} g / 권장 {rec['protein']} g")
     st.write(f"**지방:** {total['fat']} g / 권장 {rec['fat']} g")
 
-    # 가독성 높은 Altair 차트
+    # 나란히 막대 그래프
     chart = pd.DataFrame({
         "영양소": ["탄수화물", "단백질", "지방"],
         "섭취량": [total["carb"], total["protein"], total["fat"]],
@@ -168,30 +168,19 @@ if st.button("분석하기"):
 
     bar = (
         alt.Chart(chart_melt)
-        .mark_bar(size=40)
+        .mark_bar(size=30)
         .encode(
             x=alt.X("영양소:N", axis=alt.Axis(labelAngle=0)),
             y=alt.Y("g:Q", title="g (그램)"),
-            color=alt.Color("구분:N", scale=alt.Scale(scheme="set2"))
+            color=alt.Color("구분:N", scale=alt.Scale(scheme="set2")),
+            column="영양소:N"
         )
-        .properties(width=500, height=400)
+        .properties(width=120, height=400)
     )
 
-    text = (
-        alt.Chart(chart_melt)
-        .mark_text(dy=-10, fontSize=12)
-        .encode(
-            x="영양소:N",
-            y="g:Q",
-            text="g:Q",
-            color="구분:N"
-        )
-    )
-
-    st.altair_chart(bar + text, use_container_width=True)
+    st.altair_chart(bar, use_container_width=True)
 
     st.subheader("💡 맞춤형 식습관 개선 팁")
     tips = generate_tips(total, rec)
     for t in tips:
         st.write("- " + t)
-
