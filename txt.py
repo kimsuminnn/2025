@@ -1,203 +1,97 @@
-# app.py
-# -*- coding: utf-8 -*-
-import re
-import pandas as pd
 import streamlit as st
-import altair as alt
+import pandas as pd
+import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="식단 및 영양 분석", page_icon="🥗", layout="wide")
-
-# -----------------------------
-# 1) 음식 데이터베이스
-# -----------------------------
+# 음식 DB
 FOOD_DB = {
-    "밥": {"kcal": 300, "carb": 66, "protein": 6, "fat": 0.6},   # 1공기
-    "김치": {"kcal": 10, "carb": 2, "protein": 1, "fat": 0.2},    # 1접시
-    "달걀": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},       # 1개
-    "계란": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},       # 1개
-    "계란후라이": {"kcal": 90, "carb": 1, "protein": 6, "fat": 7}, # 1개
-    "닭가슴살": {"kcal": 165, "carb": 0, "protein": 31, "fat": 3.6},  # 100g
-    "라면": {"kcal": 500, "carb": 77, "protein": 10, "fat": 17},  # 1봉지
-    "치킨": {"kcal": 215, "carb": 12, "protein": 15, "fat": 12},  # 1조각
+    "밥": {"kcal": 300, "carb": 66, "protein": 6, "fat": 0.6},
+    "김치": {"kcal": 10, "carb": 2, "protein": 1, "fat": 0.2},
+    "달걀": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},
+    "계란": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},
+    "계란후라이": {"kcal": 90, "carb": 1, "protein": 6, "fat": 7},
     "족발": {"kcal": 350, "carb": 0, "protein": 25, "fat": 25},
-     "김" : {"kcal": 5, "carb": 0.5, "protein": 0.3, "fat": 0.1},
-    "감자": {"kcal": 80, "carb": 18, "protein": 2, "fat": 0.1},  #1개
-    "떡볶이": {"kcal": 250, "carb": 50, "protein": 4, "fat": 5},  #1인분
-    "과자": {"kcal": 500, "carb": 50, "protein": 5, "fat": 25},  #1봉지
+    "김": {"kcal": 5, "carb": 0.5, "protein": 0.3, "fat": 0.1},
+    "감자": {"kcal": 80, "carb": 18, "protein": 2, "fat": 0.1},
+    "떡볶이": {"kcal": 250, "carb": 50, "protein": 4, "fat": 5},
+    "과자": {"kcal": 500, "carb": 50, "protein": 5, "fat": 25},
     "젤리": {"kcal": 150, "carb": 35, "protein": 1, "fat": 0},
     "초콜릿": {"kcal": 220, "carb": 25, "protein": 3, "fat": 12},
     "사탕": {"kcal": 50, "carb": 13, "protein": 0, "fat": 0}
 }
 
-# -----------------------------
-# 2) 없는 음식 → 카테고리별 추정치
-# -----------------------------
-CATEGORY_DEFAULTS = {
-    "밥": {"kcal": 300, "carb": 65, "protein": 6, "fat": 1},
-    "면": {"kcal": 400, "carb": 75, "protein": 12, "fat": 8},
-    "빵": {"kcal": 250, "carb": 45, "protein": 7, "fat": 5},
-    "고기": {"kcal": 350, "carb": 5, "protein": 25, "fat": 20},
-    "디저트": {"kcal": 280, "carb": 40, "protein": 4, "fat": 10},
-    "기타": {"kcal": 200, "carb": 30, "protein": 5, "fat": 5},
-}
+st.title("🍱 식단 및 영양 분석")
 
-# -----------------------------
-# 3) 음식 영양소 추정 함수 (+ 수량 인식)
-# -----------------------------
-def estimate_food(food_name: str):
-    food_name = food_name.strip().lower()
+# 세션 상태 초기화
+if "foods_input" not in st.session_state:
+    st.session_state["foods_input"] = ""
+if "user_info" not in st.session_state:
+    st.session_state["user_info"] = {"height": None, "weight": None, "goal": None}
 
-    # 식사 시간 키워드 제거
-    meal_words = ["아침:", "점심:", "저녁:", "간식:"]
-    for mw in meal_words:
-        if food_name.startswith(mw):
-            food_name = food_name.replace(mw, "").strip()
+# 사용자 정보 입력
+st.sidebar.header("👤 내 정보 입력")
+height = st.sidebar.number_input("키 (cm)", min_value=100, max_value=250, step=1,
+                                 value=st.session_state["user_info"]["height"] or 170)
+weight = st.sidebar.number_input("몸무게 (kg)", min_value=30, max_value=200, step=1,
+                                 value=st.session_state["user_info"]["weight"] or 60)
+goal = st.sidebar.selectbox("목표", ["다이어트", "체중 유지", "벌크업"],
+                            index=["다이어트", "체중 유지", "벌크업"].index(
+                                st.session_state["user_info"]["goal"] or "체중 유지"))
 
-    # 0칼로리 처리: 빈칸 or 특정 키워드
-    skip_words = ["없음", "안 먹", "먹지 않음", "굶음", "x"]
-    if food_name == "" or any(word in food_name for word in skip_words):
-        return {"kcal": 0, "carb": 0, "protein": 0, "fat": 0}
+# 입력값 저장
+st.session_state["user_info"] = {"height": height, "weight": weight, "goal": goal}
 
-    # 👉 수량 인식 (숫자 + 단위)
-    qty = 1
-    match = re.search(r"(\d+)\s*(개|공기|조각|봉지|접시|g|그램)?", food_name)
-    if match:
-        qty = int(match.group(1))
-        food_name = food_name.replace(match.group(0), "").strip()
+# 음식 입력창
+st.session_state["foods_input"] = st.text_area(
+    "오늘 먹은 음식을 입력하세요 (쉼표로 구분)",
+    value=st.session_state["foods_input"]
+)
 
-    # 1) DB에서 찾기
-    for key in FOOD_DB:
-        if key in food_name:
-            base = FOOD_DB[key]
-            return {k: v * qty for k, v in base.items()}
+foods = [f.strip() for f in st.session_state["foods_input"].split(",") if f.strip()]
 
-    # 2) 카테고리 추정
-    for cat in CATEGORY_DEFAULTS:
-        if cat in food_name:
-            base = CATEGORY_DEFAULTS[cat]
-            return {k: v * qty for k, v in base.items()}
+# 분석
+total = {"kcal": 0, "carb": 0, "protein": 0, "fat": 0}
+details = []
 
-    # 3) 못 찾으면 기타
-    base = CATEGORY_DEFAULTS["기타"]
-    return {k: v * qty for k, v in base.items()}
-
-# -----------------------------
-# 4) 권장 칼로리 및 영양소 계산
-# -----------------------------
-def calc_recommendations(sex, age, weight, height, activity):
-    if sex == "남":
-        bmr = 10 * weight + 6.25 * height - 5 * age + 5
-    else:
-        bmr = 10 * weight + 6.25 * height - 5 * age - 161
-    
-    activity_factor = {"낮음": 1.2, "보통": 1.55, "높음": 1.725}[activity]
-    tdee = int(bmr * activity_factor)
-
-    carb = int((0.55 * tdee) / 4)
-    protein = int((0.20 * tdee) / 4)
-    fat = int((0.25 * tdee) / 9)
-
-    return {"kcal": tdee, "carb": carb, "protein": protein, "fat": fat}
-
-# -----------------------------
-# 5) 맞춤형 팁 생성
-# -----------------------------
-def generate_tips(total, rec):
-    tips = []
-    if total["kcal"] < rec["kcal"] * 0.9:
-        tips.append("칼로리가 부족해요. 밥, 감자, 고구마 같은 탄수화물 음식을 조금 더 드세요.")
-    elif total["kcal"] > rec["kcal"] * 1.1:
-        tips.append("칼로리가 과해요. 간식이나 튀긴 음식 섭취를 줄이는 게 좋아요.")
-
-    if total["protein"] < rec["protein"] * 0.9:
-        tips.append("단백질이 부족해요. 달걀, 두부, 닭가슴살 같은 단백질 식품을 더 드세요.")
-    elif total["protein"] > rec["protein"] * 1.2:
-        tips.append("단백질이 과해요. 과한 단백질은 신장에 부담을 줄 수 있어요.")
-
-    if total["carb"] < rec["carb"] * 0.9:
-        tips.append("탄수화물이 부족해요. 밥, 빵, 과일을 추가해 보세요.")
-    elif total["carb"] > rec["carb"] * 1.2:
-        tips.append("탄수화물이 많아요. 단 음료나 과자를 줄이는 게 좋아요.")
-
-    if total["fat"] < rec["fat"] * 0.8:
-        tips.append("지방이 부족해요. 견과류나 올리브유 같은 건강한 지방을 섭취해 보세요.")
-    elif total["fat"] > rec["fat"] * 1.2:
-        tips.append("지방 섭취가 많아요. 튀김류보다는 구이나 찜을 선택하세요.")
-
-    if not tips:
-        tips.append("아주 균형 잡힌 식단이에요! 👏 계속 유지해 보세요.")
-    return tips
-
-# -----------------------------
-# 6) Streamlit UI
-# -----------------------------
-st.title("🥗 식단 및 영양 분석")
-
-st.subheader("👤 내 정보 입력")
-col1, col2, col3 = st.columns(3)
-with col1:
-    sex = st.radio("성별", ["남", "여"])
-with col2:
-    age = st.number_input("나이", 15, 25, 17)
-with col3:
-    activity = st.selectbox("활동량", ["낮음", "보통", "높음"])
-
-col4, col5 = st.columns(2)
-with col4:
-    height = st.number_input("키(cm)", 140, 200, 170)
-with col5:
-    weight = st.number_input("몸무게(kg)", 40, 120, 60)
-
-st.write("---")
-
-st.subheader("🍽️ 식단 입력")
-st.write("예시: 아침: 밥 2공기, 달걀 2개 / 점심: 라면 1봉지 / 저녁: 치킨 3조각")
-user_input = st.text_area("하루 동안 먹은 음식", height=150)
-
-if st.button("분석하기"):
-    rec = calc_recommendations(sex, age, weight, height, activity)
-
-    foods = re.split(r"[,\n/]", user_input)
-    total = {"kcal": 0, "carb": 0, "protein": 0, "fat": 0}
-    
-    st.subheader("🍱 입력된 음식 분석")
-    for f in foods:
-        f = f.strip()
-        nutri = estimate_food(f)   # 🔥 수량 인식 반영
-        st.write(f"- {f if f else '빈칸'}: {nutri['kcal']} kcal, "
-                 f"탄수 {nutri['carb']}g, 단백질 {nutri['protein']}g, 지방 {nutri['fat']}g")
+for food in foods:
+    if food in FOOD_DB:
+        data = FOOD_DB[food]
         for k in total:
-            total[k] += nutri[k]
-    
-    st.subheader("📊 하루 총 섭취량 vs 권장량")
-    st.write(f"**총 칼로리:** {total['kcal']} kcal / 권장 {rec['kcal']} kcal")
-    st.write(f"**탄수화물:** {total['carb']} g / 권장 {rec['carb']} g")
-    st.write(f"**단백질:** {total['protein']} g / 권장 {rec['protein']} g")
-    st.write(f"**지방:** {total['fat']} g / 권장 {rec['fat']} g")
+            total[k] += data[k]
+        details.append([food, data["kcal"], data["carb"], data["protein"], data["fat"]])
+    else:
+        details.append([food, "DB 없음", "-", "-", "-"])
 
-    chart = pd.DataFrame({
-        "영양소": ["탄수화물", "단백질", "지방"],
-        "섭취량(g)": [total["carb"], total["protein"], total["fat"]],
-        "권장량(g)": [rec["carb"], rec["protein"], rec["fat"]]
-    })
+# 결과 표시
+if foods:
+    st.subheader("📊 영양 분석 결과")
+    df = pd.DataFrame(details, columns=["음식", "칼로리", "탄수화물(g)", "단백질(g)", "지방(g)"])
+    st.table(df)
 
-    bar = (
-        alt.Chart(chart.melt("영양소", var_name="구분", value_name="g"))
-        .mark_bar()
-        .encode(
-            x=alt.X("영양소:N", axis=alt.Axis(labelAngle=0)),  # ✅ 가로 라벨
-            y="g:Q",
-            color="구분:N"
-        )
-    )
-    st.altair_chart(bar, use_container_width=True)
+    st.write("### 🔎 총 섭취량")
+    st.write(f"칼로리: {total['kcal']} kcal")
+    st.write(f"탄수화물: {total['carb']} g")
+    st.write(f"단백질: {total['protein']} g")
+    st.write(f"지방: {total['fat']} g")
 
-    st.subheader("💡 맞춤형 식습관 개선 팁")
-    tips = generate_tips(total, rec)
-    for t in tips:
-        st.write("- " + t)
+    # 맞춤형 팁 제공
+    st.write("### 💡 맞춤형 식습관 팁")
+    if goal == "다이어트" and total["kcal"] > 2000:
+        st.warning("칼로리가 조금 높습니다. 야채 위주의 식단을 추천드려요 🥦")
+    elif goal == "벌크업" and total["protein"] < 100:
+        st.info("단백질 섭취가 부족합니다. 닭가슴살, 달걀, 두부 등을 추가해보세요 🍗🥚")
+    else:
+        st.success("좋은 균형 잡힌 식단을 유지하고 있습니다 👍")
 
-# 🔄 초기화 버튼 (내 정보 초기화)
-if st.button("🔄 내 식단 초기화"):
-    st.session_state["foods_input"] = ""  # 입력값 비우기
-    st.experimental_rerun()
+    # 시각화
+    fig, ax = plt.subplots()
+    ax.bar(total.keys(), total.values())
+    ax.set_title("총 섭취 영양소")
+    ax.set_ylabel("g / kcal")
+    plt.xticks(rotation=0)  # 가로 표시
+    st.pyplot(fig)
+
+# 🔄 전체 초기화 버튼
+if st.button("🔄 내 정보 및 식단 전체 초기화"):
+    st.session_state["foods_input"] = ""
+    st.session_state["user_info"] = {"height": None, "weight": None, "goal": None}
+    st.rerun()
