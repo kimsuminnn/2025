@@ -145,23 +145,23 @@ if st.button("분석하기"):
     "영양소": ["탄수화물", "단백질", "지방"],
     "섭취량": [total["carb"], total["protein"], total["fat"]],
     "권장량": [rec["carb"], rec["protein"], rec["fat"]]
-})
+   })
 
-chart_melt = chart.melt("영양소", var_name="구분", value_name="g")
+   chart_melt = chart.melt("영양소", var_name="구분", value_name="g")
 
-bar = (
+   bar = (
     alt.Chart(chart_melt)
     .mark_bar()
     .encode(
         x=alt.X("영양소:N", title="영양소"),
         y=alt.Y("g:Q", title="g (그램)"),
         color=alt.Color("구분:N", scale=alt.Scale(scheme="set2")),
-        xOffset="구분:N"   # 이 부분이 그룹드 바를 만들어 줍니다
+        xOffset="구분:N"  # 그룹드 바를 위해 추가
     )
     .properties(width=600, height=400)
-)
+   )
 
-text = (
+   text = (
     alt.Chart(chart_melt)
     .mark_text(dy=-5)
     .encode(
@@ -171,9 +171,9 @@ text = (
         xOffset="구분:N",
         color=alt.Color("구분:N")
     )
-)
+   )
 
-st.altair_chart(bar + text, use_container_width=True)
+   st.altair_chart(bar + text, use_container_width=True)
 
     st.subheader("💡 맞춤형 식습관 개선 팁")
     tips = generate_tips(total, rec)
