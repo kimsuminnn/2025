@@ -139,7 +139,7 @@ if st.button("분석하기"):
     st.write(f"**지방:** {total['fat']} g / 권장 {rec['fat']} g")
 
     # -----------------------------
-    # 그룹드 바 차트 (탄단지 나란히)
+    # 그룹드 바 차트 (나란히, 글씨 가로)
     # -----------------------------
     chart = pd.DataFrame({
         "영양소": ["탄수화물", "단백질", "지방"],
@@ -152,7 +152,7 @@ if st.button("분석하기"):
         alt.Chart(chart_melt)
         .mark_bar()
         .encode(
-            x=alt.X("영양소:N", title="영양소"),
+            x=alt.X("영양소:N", title="영양소", axis=alt.Axis(labelAngle=0)),  # 글씨 가로
             y=alt.Y("g:Q", title="g (그램)"),
             color=alt.Color("구분:N", scale=alt.Scale(scheme="set2")),
             xOffset="구분:N"
@@ -164,7 +164,7 @@ if st.button("분석하기"):
         alt.Chart(chart_melt)
         .mark_text(dy=-5)
         .encode(
-            x=alt.X("영양소:N"),
+            x=alt.X("영양소:N", axis=alt.Axis(labelAngle=0)),
             y="g:Q",
             text="g:Q",
             xOffset="구분:N",
