@@ -11,19 +11,19 @@ st.set_page_config(page_title="식단 및 영양 분석", page_icon="🥗", layo
 # 1) 음식 데이터베이스
 # -----------------------------
 FOOD_DB = {
-    "밥": {"kcal": 300, "carb": 66, "protein": 6, "fat": 0.6},   # 1공기
-    "김치": {"kcal": 10, "carb": 2, "protein": 1, "fat": 0.2},    # 1접시
-    "달걀": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},       # 1개
-    "계란": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},       # 1개
-    "계란후라이": {"kcal": 90, "carb": 1, "protein": 6, "fat": 7}, # 1개
-    "닭가슴살": {"kcal": 165, "carb": 0, "protein": 31, "fat": 3.6},  # 100g
-    "라면": {"kcal": 500, "carb": 77, "protein": 10, "fat": 17},  # 1봉지
-    "치킨": {"kcal": 215, "carb": 12, "protein": 15, "fat": 12},  # 1조각
+    "밥": {"kcal": 300, "carb": 66, "protein": 6, "fat": 0.6},
+    "김치": {"kcal": 10, "carb": 2, "protein": 1, "fat": 0.2},
+    "달걀": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},
+    "계란": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},
+    "계란후라이": {"kcal": 90, "carb": 1, "protein": 6, "fat": 7},
+    "닭가슴살": {"kcal": 165, "carb": 0, "protein": 31, "fat": 3.6},
+    "라면": {"kcal": 500, "carb": 77, "protein": 10, "fat": 17},
+    "치킨": {"kcal": 215, "carb": 12, "protein": 15, "fat": 12},
     "족발": {"kcal": 350, "carb": 0, "protein": 25, "fat": 25},
     "김": {"kcal": 5, "carb": 0.5, "protein": 0.3, "fat": 0.1},
-    "감자": {"kcal": 80, "carb": 18, "protein": 2, "fat": 0.1},  # 1개
-    "떡볶이": {"kcal": 250, "carb": 50, "protein": 4, "fat": 5},  # 1인분
-    "과자": {"kcal": 500, "carb": 50, "protein": 5, "fat": 25},  # 1봉지
+    "감자": {"kcal": 80, "carb": 18, "protein": 2, "fat": 0.1},
+    "떡볶이": {"kcal": 250, "carb": 50, "protein": 4, "fat": 5},
+    "과자": {"kcal": 500, "carb": 50, "protein": 5, "fat": 25},
     "젤리": {"kcal": 150, "carb": 35, "protein": 1, "fat": 0},
     "초콜릿": {"kcal": 220, "carb": 25, "protein": 3, "fat": 12},
     "사탕": {"kcal": 50, "carb": 13, "protein": 0, "fat": 0}
@@ -58,7 +58,7 @@ def calc_recommendations(sex, age, weight, height, activity):
         bmr = 10 * weight + 6.25 * height - 5 * age + 5
     else:
         bmr = 10 * weight + 6.25 * height - 5 * age - 161
-    
+
     activity_factor = {"낮음": 1.2, "보통": 1.55, "높음": 1.725}[activity]
     tdee = int(bmr * activity_factor)
 
@@ -139,41 +139,40 @@ if st.button("분석하기"):
     st.write(f"**지방:** {total['fat']} g / 권장 {rec['fat']} g")
 
     # -----------------------------
-    # 그룹드 바 차트
+    # 그룹드 바 차트 (탄단지 나란히)
     # -----------------------------
-   chart = pd.DataFrame({
-    "영양소": ["탄수화물", "단백질", "지방"],
-    "섭취량": [total["carb"], total["protein"], total["fat"]],
-    "권장량": [rec["carb"], rec["protein"], rec["fat"]]
-   })
+    chart = pd.DataFrame({
+        "영양소": ["탄수화물", "단백질", "지방"],
+        "섭취량": [total["carb"], total["protein"], total["fat"]],
+        "권장량": [rec["carb"], rec["protein"], rec["fat"]]
+    })
+    chart_melt = chart.melt("영양소", var_name="구분", value_name="g")
 
-   chart_melt = chart.melt("영양소", var_name="구분", value_name="g")
-
-   bar = (
-    alt.Chart(chart_melt)
-    .mark_bar()
-    .encode(
-        x=alt.X("영양소:N", title="영양소"),
-        y=alt.Y("g:Q", title="g (그램)"),
-        color=alt.Color("구분:N", scale=alt.Scale(scheme="set2")),
-        xOffset="구분:N"  # 그룹드 바를 위해 추가
+    bar = (
+        alt.Chart(chart_melt)
+        .mark_bar()
+        .encode(
+            x=alt.X("영양소:N", title="영양소"),
+            y=alt.Y("g:Q", title="g (그램)"),
+            color=alt.Color("구분:N", scale=alt.Scale(scheme="set2")),
+            xOffset="구분:N"
+        )
+        .properties(width=600, height=400)
     )
-    .properties(width=600, height=400)
-   )
 
-   text = (
-    alt.Chart(chart_melt)
-    .mark_text(dy=-5)
-    .encode(
-        x=alt.X("영양소:N"),
-        y="g:Q",
-        text="g:Q",
-        xOffset="구분:N",
-        color=alt.Color("구분:N")
+    text = (
+        alt.Chart(chart_melt)
+        .mark_text(dy=-5)
+        .encode(
+            x=alt.X("영양소:N"),
+            y="g:Q",
+            text="g:Q",
+            xOffset="구분:N",
+            color=alt.Color("구분:N")
+        )
     )
-   )
 
-   st.altair_chart(bar + text, use_container_width=True)
+    st.altair_chart(bar + text, use_container_width=True)
 
     st.subheader("💡 맞춤형 식습관 개선 팁")
     tips = generate_tips(total, rec)
