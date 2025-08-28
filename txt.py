@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # 음식 DB
 FOOD_DB = {
@@ -82,13 +81,12 @@ if foods:
     else:
         st.success("좋은 균형 잡힌 식단을 유지하고 있습니다 👍")
 
-    # 시각화
-    fig, ax = plt.subplots()
-    ax.bar(total.keys(), total.values())
-    ax.set_title("총 섭취 영양소")
-    ax.set_ylabel("g / kcal")
-    plt.xticks(rotation=0)  # 가로 표시
-    st.pyplot(fig)
+    # ✅ Streamlit 내장 차트 활용
+    st.write("### 📈 영양소 그래프")
+    chart_df = pd.DataFrame(
+        {"영양소": list(total.keys()), "섭취량": list(total.values())}
+    )
+    st.bar_chart(chart_df.set_index("영양소"))
 
 # 🔄 전체 초기화 버튼
 if st.button("🔄 내 정보 및 식단 전체 초기화"):
