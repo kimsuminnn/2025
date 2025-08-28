@@ -42,37 +42,29 @@ CATEGORY_DEFAULTS = {
 }
 
 def estimate_food(food_name: str):
-    # 1) DB에서 찾기
     for key in FOOD_DB:
         if key in food_name:
             return FOOD_DB[key]
-    # 2) 카테고리 추정
     for cat in CATEGORY_DEFAULTS:
         if cat in food_name:
             return CATEGORY_DEFAULTS[cat]
-    # 3) 못 찾으면 기타
     return CATEGORY_DEFAULTS["기타"]
 
 # -----------------------------
 # 3) 권장 칼로리 및 영양소 계산
 # -----------------------------
 def calc_recommendations(sex, age, weight, height, activity):
-    # BMR (Mifflin-St Jeor 공식)
     if sex == "남":
         bmr = 10 * weight + 6.25 * height - 5 * age + 5
     else:
         bmr = 10 * weight + 6.25 * height - 5 * age - 161
     
-    activity_factor = {
-        "낮음": 1.2, "보통": 1.55, "높음": 1.725
-    }[activity]
+    activity_factor = {"낮음": 1.2, "보통": 1.55, "높음": 1.725}[activity]
     tdee = int(bmr * activity_factor)
 
-    # 영양소 권장 비율
-    carb = int((0.55 * tdee) / 4)      # g
-    protein = int((0.20 * tdee) / 4)   # g
-    fat = int((0.25 * tdee) / 9)       # g
-
+    carb = int((0.55 * tdee) / 4)
+    protein = int((0.20 * tdee) / 4)
+    fat = int((0.25 * tdee) / 9)
     return {"kcal": tdee, "carb": carb, "protein": protein, "fat": fat}
 
 # -----------------------------
@@ -84,22 +76,18 @@ def generate_tips(total, rec):
         tips.append("칼로리가 부족해요. 밥, 감자, 고구마 같은 탄수화물 음식을 조금 더 드세요.")
     elif total["kcal"] > rec["kcal"] * 1.1:
         tips.append("칼로리가 과해요. 간식이나 튀긴 음식 섭취를 줄이는 게 좋아요.")
-
     if total["protein"] < rec["protein"] * 0.9:
         tips.append("단백질이 부족해요. 달걀, 두부, 닭가슴살 같은 단백질 식품을 더 드세요.")
     elif total["protein"] > rec["protein"] * 1.2:
         tips.append("단백질이 과해요. 과한 단백질은 신장에 부담을 줄 수 있어요.")
-
     if total["carb"] < rec["carb"] * 0.9:
         tips.append("탄수화물이 부족해요. 밥, 빵, 과일을 추가해 보세요.")
     elif total["carb"] > rec["carb"] * 1.2:
         tips.append("탄수화물이 많아요. 단 음료나 과자를 줄이는 게 좋아요.")
-
     if total["fat"] < rec["fat"] * 0.8:
         tips.append("지방이 부족해요. 견과류나 올리브유 같은 건강한 지방을 섭취해 보세요.")
     elif total["fat"] > rec["fat"] * 1.2:
         tips.append("지방 섭취가 많아요. 튀김류보다는 구이나 찜을 선택하세요.")
-
     if not tips:
         tips.append("아주 균형 잡힌 식단이에요! 👏 계속 유지해 보세요.")
     return tips
@@ -131,10 +119,9 @@ user_input = st.text_area("하루 동안 먹은 음식", height=150)
 
 if st.button("분석하기"):
     rec = calc_recommendations(sex, age, weight, height, activity)
-
     foods = re.split(r"[,\n/]", user_input)
     total = {"kcal": 0, "carb": 0, "protein": 0, "fat": 0}
-    
+
     st.subheader("🍱 입력된 음식 분석")
     for f in foods:
         f = f.strip()
@@ -144,20 +131,21 @@ if st.button("분석하기"):
         st.write(f"- {f}: {nutri['kcal']} kcal, 탄수 {nutri['carb']}g, 단백질 {nutri['protein']}g, 지방 {nutri['fat']}g")
         for k in total:
             total[k] += nutri[k]
-    
+
     st.subheader("📊 하루 총 섭취량 vs 권장량")
     st.write(f"**총 칼로리:** {total['kcal']} kcal / 권장 {rec['kcal']} kcal")
     st.write(f"**탄수화물:** {total['carb']} g / 권장 {rec['carb']} g")
     st.write(f"**단백질:** {total['protein']} g / 권장 {rec['protein']} g")
     st.write(f"**지방:** {total['fat']} g / 권장 {rec['fat']} g")
 
-    # 그룹드 바 차트 (나란히)
+    # -----------------------------
+    # 그룹드 바 차트
+    # -----------------------------
     chart = pd.DataFrame({
         "영양소": ["탄수화물", "단백질", "지방"],
         "섭취량": [total["carb"], total["protein"], total["fat"]],
         "권장량": [rec["carb"], rec["protein"], rec["fat"]]
     })
-
     chart_melt = chart.melt("영양소", var_name="구분", value_name="g")
 
     bar = (
@@ -166,8 +154,7 @@ if st.button("분석하기"):
         .encode(
             x=alt.X("영양소:N", title="영양소"),
             y=alt.Y("g:Q", title="g (그램)"),
-            color=alt.Color("구분:N", scale=alt.Scale(scheme="set2")),
-            column=None
+            color=alt.Color("구분:N", scale=alt.Scale(scheme="set2"))
         )
         .properties(width=500, height=400)
     )
