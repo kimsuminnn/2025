@@ -64,11 +64,9 @@ CATEGORY_DEFAULTS = {
 }
 
 def estimate_food(food_name: str):
-    # DB에서 찾기
     for key in FOOD_DB:
         if key in food_name:
             return FOOD_DB[key]
-    # 카테고리 추정
     for cat in CATEGORY_DEFAULTS:
         if cat in food_name:
             return CATEGORY_DEFAULTS[cat]
@@ -143,4 +141,61 @@ user_input = st.text_area("하루 동안 먹은 음식", height=150)
 if st.button("분석하기"):
     rec = calc_recommendations(sex, age, weight, height, activity)
     foods = re.split(r"[,\n/]", user_input)
-    total = {"kcal
+    total = {"kcal": 0, "carb": 0, "protein": 0, "fat": 0}
+
+    st.subheader("🍱 입력된 음식 분석")
+    for f in foods:
+        f = f.strip()
+        if not f:
+            continue
+        nutri = estimate_food(f)
+        st.write(f"- {f}: {nutri['kcal']} kcal, 탄수 {nutri['carb']}g, 단백질 {nutri['protein']}g, 지방 {nutri['fat']}g")
+        for k in total:
+            total[k] += nutri[k]
+
+    st.subheader("📊 하루 총 섭취량 vs 권장량")
+    st.write(f"**총 칼로리:** {total['kcal']} kcal / 권장 {rec['kcal']} kcal")
+    st.write(f"**탄수화물:** {total['carb']:.1f} g / 권장 {rec['carb']:.1f} g")
+    st.write(f"**단백질:** {total['protein']:.1f} g / 권장 {rec['protein']:.1f} g")
+    st.write(f"**지방:** {total['fat']:.1f} g / 권장 {rec['fat']:.1f} g")
+
+    # -----------------------------
+    # 그룹드 바 차트 (나란히, 글씨 가로)
+    # -----------------------------
+    chart = pd.DataFrame({
+        "영양소": ["탄수화물", "단백질", "지방"],
+        "섭취량": [total["carb"], total["protein"], total["fat"]],
+        "권장량": [rec["carb"], rec["protein"], rec["fat"]]
+    })
+    chart_melt = chart.melt("영양소", var_name="구분", value_name="g")
+
+    bar = (
+        alt.Chart(chart_melt)
+        .mark_bar()
+        .encode(
+            x=alt.X("영양소:N", title="영양소", axis=alt.Axis(labelAngle=0)),
+            y=alt.Y("g:Q", title="g (그램)"),
+            color=alt.Color("구분:N", scale=alt.Scale(scheme="set2")),
+            xOffset="구분:N"
+        )
+        .properties(width=600, height=400)
+    )
+
+    text = (
+        alt.Chart(chart_melt)
+        .mark_text(dy=-5)
+        .encode(
+            x=alt.X("영양소:N", axis=alt.Axis(labelAngle=0)),
+            y="g:Q",
+            text="g:Q",
+            xOffset="구분:N",
+            color=alt.Color("구분:N")
+        )
+    )
+
+    st.altair_chart(bar + text, use_container_width=True)
+
+    st.subheader("💡 맞춤형 식습관 개선 팁")
+    tips = generate_tips(total, rec)
+    for t in tips:
+        st.write("- " + t)
