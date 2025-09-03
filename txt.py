@@ -12,49 +12,48 @@ st.set_page_config(page_title="식단 및 영양 분석", page_icon="🥗", layo
 # -----------------------------
 FOOD_DB = {
     # 🍚 주식류
-    "밥": {"kcal": 300, "carb": 66, "protein": 6, "fat": 0.6},   # 1공기
-    "잡곡밥": {"kcal": 320, "carb": 65, "protein": 8, "fat": 2}, # 1공기
-    "라면": {"kcal": 500, "carb": 77, "protein": 10, "fat": 17},  # 1봉지
-    "국수": {"kcal": 270, "carb": 55, "protein": 8, "fat": 1},   # 1인분
-    "식빵": {"kcal": 250, "carb": 50, "protein": 8, "fat": 3},   # 2개
+    "밥": {"kcal": 300, "carb": 66, "protein": 6, "fat": 0.6},
+    "잡곡밥": {"kcal": 320, "carb": 65, "protein": 8, "fat": 2},
+    "라면": {"kcal": 500, "carb": 77, "protein": 10, "fat": 17},
+    "식빵": {"kcal": 250, "carb": 50, "protein": 8, "fat": 3},
 
     # 🍖 단백질류
-    "달걀": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},     # 1개
-    "계란": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},     # 1개
-    "계란후라이": {"kcal": 90, "carb": 1, "protein": 6, "fat": 7}, #1개
-    "닭가슴살": {"kcal": 165, "carb": 0, "protein": 31, "fat": 3.6},  # 1개
-    "삼겹살": {"kcal": 300, "carb": 0, "protein": 20, "fat": 25},      # 1인분
-    "소고기": {"kcal": 250, "carb": 0, "protein": 26, "fat": 17},      # 1인분
-    "고등어": {"kcal": 210, "carb": 0, "protein": 20, "fat": 14},      # 1인분
+    "달걀": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},
+    "계란": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},
+    "계란후라이": {"kcal": 90, "carb": 1, "protein": 6, "fat": 7},
+    "닭가슴살": {"kcal": 165, "carb": 0, "protein": 31, "fat": 3.6},
+    "삼겹살": {"kcal": 300, "carb": 0, "protein": 20, "fat": 25},
 
     # 🥬 채소류
-    "김치": {"kcal": 10, "carb": 2, "protein": 1, "fat": 0.2},   # 1접시
-    "상추": {"kcal": 5, "carb": 1, "protein": 0.5, "fat": 0},    # 5장
-    "시금치": {"kcal": 20, "carb": 3, "protein": 2, "fat": 0},   # 1줌
+    "김치": {"kcal": 10, "carb": 2, "protein": 1, "fat": 0.2},
+    "상추": {"kcal": 5, "carb": 1, "protein": 0.5, "fat": 0},
+    "시금치": {"kcal": 20, "carb": 3, "protein": 2, "fat": 0},
 
     # 🍊 과일류
-    "사과": {"kcal": 95, "carb": 25, "protein": 0, "fat": 0},   # 1개
-    "바나나": {"kcal": 110, "carb": 27, "protein": 1, "fat": 0},# 1개
-    "귤": {"kcal": 40, "carb": 10, "protein": 0.5, "fat": 0},   # 1개
-    "딸기": {"kcal": 50, "carb": 12, "protein": 1, "fat": 0},   # 100g
+    "사과": {"kcal": 95, "carb": 25, "protein": 0, "fat": 0},
+    "바나나": {"kcal": 110, "carb": 27, "protein": 1, "fat": 0},
+    "귤": {"kcal": 40, "carb": 10, "protein": 0.5, "fat": 0},
+    "딸기": {"kcal": 50, "carb": 12, "protein": 1, "fat": 0},
 
     # 🍩 간식·디저트류
-    "떡볶이": {"kcal": 250, "carb": 50, "protein": 4, "fat": 5},    # 1인분
-    "과자": {"kcal": 500, "carb": 50, "protein": 5, "fat": 25},     # 1봉지
-    "초콜릿": {"kcal": 220, "carb": 25, "protein": 3, "fat": 12},   # 1줄
-    "젤리": {"kcal": 150, "carb": 35, "protein": 1, "fat": 0},      # 1봉지
-    "아이스크림": {"kcal": 200, "carb": 25, "protein": 3, "fat": 10}, # 1개
+    "떡볶이": {"kcal": 250, "carb": 50, "protein": 4, "fat": 5},
+    "과자": {"kcal": 500, "carb": 50, "protein": 5, "fat": 25},
+    "초콜릿": {"kcal": 220, "carb": 25, "protein": 3, "fat": 12},
+    "젤리": {"kcal": 150, "carb": 35, "protein": 1, "fat": 0},
+    "아이스크림": {"kcal": 200, "carb": 25, "protein": 3, "fat": 10},
+    "초코우유": {"kcal": 180, "carb": 28, "protein": 6, "fat": 4},
+    "요거트": {"kcal": 60, "carb": 8, "protein": 3, "fat": 2},
 
-    # 🍺 음료류
-    "우유": {"kcal": 120, "carb": 12, "protein": 8, "fat": 5},   # 1컵
-    "두유": {"kcal": 130, "carb": 10, "protein": 7, "fat": 6},   # 1컵
-    "콜라": {"kcal": 140, "carb": 39, "protein": 0, "fat": 0},   # 1캔
-    "주스": {"kcal": 110, "carb": 26, "protein": 1, "fat": 0}    # 1컵
-
+    # 🍄 버섯류 (100g 기준)
+    "버섯": {"kcal": 22, "carb": 3, "protein": 3, "fat": 0.3},
+    "팽이버섯": {"kcal": 37, "carb": 7, "protein": 2, "fat": 0.2},
+    "새송이버섯": {"kcal": 30, "carb": 6, "protein": 2, "fat": 0.2},
+    "표고버섯": {"kcal": 35, "carb": 7, "protein": 2, "fat": 0.5},
+    "양송이버섯": {"kcal": 22, "carb": 3, "protein": 3, "fat": 0.3}
 }
 
 # -----------------------------
-# 2) 없는 음식 → 카테고리별 추정치
+# 3) 음식 추정 함수
 # -----------------------------
 CATEGORY_DEFAULTS = {
     "밥": {"kcal": 300, "carb": 65, "protein": 6, "fat": 1},
@@ -62,37 +61,42 @@ CATEGORY_DEFAULTS = {
     "빵": {"kcal": 250, "carb": 45, "protein": 7, "fat": 5},
     "고기": {"kcal": 350, "carb": 5, "protein": 25, "fat": 20},
     "디저트": {"kcal": 280, "carb": 40, "protein": 4, "fat": 10},
-    "기타": {"kcal": 200, "carb": 30, "protein": 5, "fat": 5},
+    "기타": {"kcal": 200, "carb": 30, "protein": 5, "fat": 5}
 }
 
 def estimate_food(food_name: str):
+    # 별칭 처리
+    food_name = FOOD_SYNONYMS.get(food_name, food_name)
+    # DB에서 찾기
     for key in FOOD_DB:
         if key in food_name:
             return FOOD_DB[key]
+    # 카테고리 추정
     for cat in CATEGORY_DEFAULTS:
         if cat in food_name:
             return CATEGORY_DEFAULTS[cat]
+    # 기타
     return CATEGORY_DEFAULTS["기타"]
 
 # -----------------------------
-# 3) 권장 칼로리 및 영양소 계산
+# 4) 권장량 계산
 # -----------------------------
 def calc_recommendations(sex, age, weight, height, activity):
     if sex == "남":
         bmr = 10 * weight + 6.25 * height - 5 * age + 5
     else:
         bmr = 10 * weight + 6.25 * height - 5 * age - 161
-
     activity_factor = {"낮음": 1.2, "보통": 1.55, "높음": 1.725}[activity]
     tdee = int(bmr * activity_factor)
 
-    carb = int((0.55 * tdee) / 4)
-    protein = int((0.20 * tdee) / 4)
-    fat = int((0.25 * tdee) / 9)
+    carb = (0.55 * tdee) / 4
+    protein = (0.2 * tdee) / 4
+    fat = (0.25 * tdee) / 9
+
     return {"kcal": tdee, "carb": carb, "protein": protein, "fat": fat}
 
 # -----------------------------
-# 4) 맞춤형 팁 생성
+# 5) 맞춤형 팁
 # -----------------------------
 def generate_tips(total, rec):
     tips = []
@@ -117,7 +121,7 @@ def generate_tips(total, rec):
     return tips
 
 # -----------------------------
-# 5) Streamlit UI
+# 6) Streamlit UI
 # -----------------------------
 st.title("🥗 식단 및 영양 분석")
 
@@ -129,7 +133,6 @@ with col2:
     age = st.number_input("나이", 5, 100, 20)
 with col3:
     activity = st.selectbox("활동량", ["낮음", "보통", "높음"])
-
 col4, col5 = st.columns(2)
 with col4:
     height = st.number_input("키(cm)", 100, 220, 170)
@@ -138,7 +141,7 @@ with col5:
 
 st.write("---")
 st.subheader("🍽️ 식단 입력")
-st.write("예시: 아침: 밥, 달걀 2개 / 점심: 라면 1개 / 저녁: 치킨 2조각")
+st.write("예시: 아침: 밥 1공기, 달걀 2개 / 점심: 라면 1개 / 저녁: 치킨 2조각")
 user_input = st.text_area("하루 동안 먹은 음식", height=150)
 
 if st.button("분석하기"):
@@ -151,20 +154,23 @@ if st.button("분석하기"):
         f = f.strip()
         if not f:
             continue
-        nutri = estimate_food(f)
-        st.write(f"- {f}: {nutri['kcal']} kcal, 탄수 {nutri['carb']}g, 단백질 {nutri['protein']}g, 지방 {nutri['fat']}g")
+        # 단위 숫자 추출
+        match = re.search(r'(\d+)', f)
+        count = int(match.group(1)) if match else 1
+        # 음식 이름 정리
+        name = re.sub(r'\d+', '', f).strip()
+        nutri = estimate_food(name)
+        st.write(f"- {f}: {nutri['kcal']*count} kcal, 탄수 {nutri['carb']*count}g, 단백질 {nutri['protein']*count}g, 지방 {nutri['fat']*count}g")
         for k in total:
-            total[k] += nutri[k]
+            total[k] += nutri[k]*count
 
     st.subheader("📊 하루 총 섭취량 vs 권장량")
     st.write(f"**총 칼로리:** {total['kcal']} kcal / 권장 {rec['kcal']} kcal")
-    st.write(f"**탄수화물:** {total['carb']} g / 권장 {rec['carb']} g")
-    st.write(f"**단백질:** {total['protein']} g / 권장 {rec['protein']} g")
-    st.write(f"**지방:** {total['fat']} g / 권장 {rec['fat']} g")
+    st.write(f"**탄수화물:** {total['carb']} g / 권장 {rec['carb']:.1f} g")
+    st.write(f"**단백질:** {total['protein']} g / 권장 {rec['protein']:.1f} g")
+    st.write(f"**지방:** {total['fat']} g / 권장 {rec['fat']:.1f} g")
 
-    # -----------------------------
-    # 그룹드 바 차트 (나란히, 글씨 가로)
-    # -----------------------------
+    # 그룹드 바 차트
     chart = pd.DataFrame({
         "영양소": ["탄수화물", "단백질", "지방"],
         "섭취량": [total["carb"], total["protein"], total["fat"]],
@@ -176,7 +182,7 @@ if st.button("분석하기"):
         alt.Chart(chart_melt)
         .mark_bar()
         .encode(
-            x=alt.X("영양소:N", title="영양소", axis=alt.Axis(labelAngle=0)),  # 글씨 가로
+            x=alt.X("영양소:N", title="영양소", axis=alt.Axis(labelAngle=0)),
             y=alt.Y("g:Q", title="g (그램)"),
             color=alt.Color("구분:N", scale=alt.Scale(scheme="set2")),
             xOffset="구분:N"
@@ -188,17 +194,4 @@ if st.button("분석하기"):
         alt.Chart(chart_melt)
         .mark_text(dy=-5)
         .encode(
-            x=alt.X("영양소:N", axis=alt.Axis(labelAngle=0)),
-            y="g:Q",
-            text="g:Q",
-            xOffset="구분:N",
-            color=alt.Color("구분:N")
-        )
-    )
-
-    st.altair_chart(bar + text, use_container_width=True)
-
-    st.subheader("💡 맞춤형 식습관 개선 팁")
-    tips = generate_tips(total, rec)
-    for t in tips:
-        st.write("- " + t)
+            x=alt.X("영양소:N", axis=
