@@ -19,7 +19,6 @@ FOOD_DB = {
 
     # 🍖 단백질류
     "달걀": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},
-    "계란": {"kcal": 70, "carb": 1, "protein": 6, "fat": 5},
     "계란후라이": {"kcal": 90, "carb": 1, "protein": 6, "fat": 7},
     "닭가슴살": {"kcal": 165, "carb": 0, "protein": 31, "fat": 3.6},
     "삼겹살": {"kcal": 300, "carb": 0, "protein": 20, "fat": 25},
@@ -53,7 +52,7 @@ FOOD_DB = {
 }
 
 # -----------------------------
-# 3) 음식 추정 함수
+# 2) 음식 추정 함수
 # -----------------------------
 CATEGORY_DEFAULTS = {
     "밥": {"kcal": 300, "carb": 65, "protein": 6, "fat": 1},
@@ -65,8 +64,6 @@ CATEGORY_DEFAULTS = {
 }
 
 def estimate_food(food_name: str):
-    # 별칭 처리
-    food_name = FOOD_SYNONYMS.get(food_name, food_name)
     # DB에서 찾기
     for key in FOOD_DB:
         if key in food_name:
@@ -75,11 +72,10 @@ def estimate_food(food_name: str):
     for cat in CATEGORY_DEFAULTS:
         if cat in food_name:
             return CATEGORY_DEFAULTS[cat]
-    # 기타
     return CATEGORY_DEFAULTS["기타"]
 
 # -----------------------------
-# 4) 권장량 계산
+# 3) 권장량 계산
 # -----------------------------
 def calc_recommendations(sex, age, weight, height, activity):
     if sex == "남":
@@ -96,7 +92,7 @@ def calc_recommendations(sex, age, weight, height, activity):
     return {"kcal": tdee, "carb": carb, "protein": protein, "fat": fat}
 
 # -----------------------------
-# 5) 맞춤형 팁
+# 4) 맞춤형 팁
 # -----------------------------
 def generate_tips(total, rec):
     tips = []
@@ -121,7 +117,7 @@ def generate_tips(total, rec):
     return tips
 
 # -----------------------------
-# 6) Streamlit UI
+# 5) Streamlit UI
 # -----------------------------
 st.title("🥗 식단 및 영양 분석")
 
@@ -147,51 +143,4 @@ user_input = st.text_area("하루 동안 먹은 음식", height=150)
 if st.button("분석하기"):
     rec = calc_recommendations(sex, age, weight, height, activity)
     foods = re.split(r"[,\n/]", user_input)
-    total = {"kcal": 0, "carb": 0, "protein": 0, "fat": 0}
-
-    st.subheader("🍱 입력된 음식 분석")
-    for f in foods:
-        f = f.strip()
-        if not f:
-            continue
-        # 단위 숫자 추출
-        match = re.search(r'(\d+)', f)
-        count = int(match.group(1)) if match else 1
-        # 음식 이름 정리
-        name = re.sub(r'\d+', '', f).strip()
-        nutri = estimate_food(name)
-        st.write(f"- {f}: {nutri['kcal']*count} kcal, 탄수 {nutri['carb']*count}g, 단백질 {nutri['protein']*count}g, 지방 {nutri['fat']*count}g")
-        for k in total:
-            total[k] += nutri[k]*count
-
-    st.subheader("📊 하루 총 섭취량 vs 권장량")
-    st.write(f"**총 칼로리:** {total['kcal']} kcal / 권장 {rec['kcal']} kcal")
-    st.write(f"**탄수화물:** {total['carb']} g / 권장 {rec['carb']:.1f} g")
-    st.write(f"**단백질:** {total['protein']} g / 권장 {rec['protein']:.1f} g")
-    st.write(f"**지방:** {total['fat']} g / 권장 {rec['fat']:.1f} g")
-
-    # 그룹드 바 차트
-    chart = pd.DataFrame({
-        "영양소": ["탄수화물", "단백질", "지방"],
-        "섭취량": [total["carb"], total["protein"], total["fat"]],
-        "권장량": [rec["carb"], rec["protein"], rec["fat"]]
-    })
-    chart_melt = chart.melt("영양소", var_name="구분", value_name="g")
-
-    bar = (
-        alt.Chart(chart_melt)
-        .mark_bar()
-        .encode(
-            x=alt.X("영양소:N", title="영양소", axis=alt.Axis(labelAngle=0)),
-            y=alt.Y("g:Q", title="g (그램)"),
-            color=alt.Color("구분:N", scale=alt.Scale(scheme="set2")),
-            xOffset="구분:N"
-        )
-        .properties(width=600, height=400)
-    )
-
-    text = (
-        alt.Chart(chart_melt)
-        .mark_text(dy=-5)
-        .encode(
-            x=alt.X("영양소:N", axis=
+    total = {"kcal
